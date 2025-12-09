@@ -1,0 +1,69 @@
+##############################
+# GLOBAL IGNORE
+##############################
+# Logs and other files
+*.log
+*.sqlite
+*.DS_Store
+*.env
+.env.local
+.vscode/
+
+##############################
+# NODE.JS / NEXT.JS IGNORE (nextjs-frontend)
+##############################
+# dependencies
+/nextjs-frontend/node_modules
+/nextjs-frontend/.npm
+/nextjs-frontend/.yarn
+/nextjs-frontend/.pnp
+
+# build output
+/nextjs-frontend/out
+/nextjs-frontend/dist
+/nextjs-frontend/.next
+/nextjs-frontend/build
+
+# Editor/Cache
+/nextjs-frontend/.idea
+/nextjs-frontend/.vscode
+/nextjs-frontend/.cache
+
+##############################
+# C# / .NET IGNORE (MyPostgreApi)
+##############################
+# Build results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio files
+*.suo
+*.user
+*.useros
+*.vspscc
+*.vssscc
+*.bak
+*.sbr
+*.bsc
+*.ncb
+
+# NuGet package restore
+*.nupkg
+.nuget/nuget.exe
+.nuget/NuGet.Config
+packages/
+
+# Database tools
+# database update akan membuat folder "Migrations" yang perlu kita masukkan.
+# Namun, file-file di dalamnya (.cs) HARUS di-commit.
+# Kita hanya mengabaikan file build.
+
+# Temporary files
+*.tmp
+*.temp
+
+# VS Code/Omnisharp
+.omnisharp/
+
