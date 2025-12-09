@@ -1,17 +1,15 @@
 using Microsoft.EntityFrameworkCore;
-using MyPostgreApi.Models; // Ganti jika Anda menggunakan namespace atau folder berbeda
+using MyPostgreApi.Models;
 
 namespace MyPostgreApi.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
-
-        // --- Tambahkan DbSet untuk setiap tabel di Postgre Anda ---
         public DbSet<Product> Products { get; set; }
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<Skill> Skills { get; set; }
+        public DbSet<About> Abouts { get; set; }
+        public DbSet<Contact> Contacts { get; set; }
         // public DbSet<Order> Orders { get; set; } // Contoh lain
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyPostgreApi.Data; // Pastikan Anda membuat folder Data dan ApplicationDbContext
+using MyPostgreApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,37 @@ app.MapGet("/api/products", async (ApplicationDbContext db) =>
 })
 .WithName("GetProducts")
 .WithTags("Products");
+
+// Portfolio API Endpoints
+
+// Get all projects
+app.MapGet("/api/projects", async (ApplicationDbContext db) =>
+    await db.Projects.OrderByDescending(p => p.CreatedDate).ToListAsync())
+.WithName("GetProjects");
+
+// Get all skills
+app.MapGet("/api/skills", async (ApplicationDbContext db) =>
+    await db.Skills.OrderBy(s => s.Category).ThenBy(s => s.Name).ToListAsync())
+.WithName("GetSkills");
+
+// Get about information
+app.MapGet("/api/about", async (ApplicationDbContext db) =>
+    await db.Abouts.FirstOrDefaultAsync())
+.WithName("GetAbout");
+
+// Post contact message
+app.MapPost("/api/contact", async (Contact contact, ApplicationDbContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(contact.Name) || string.IsNullOrWhiteSpace(contact.Email) || string.IsNullOrWhiteSpace(contact.Message))
+    {
+        return Results.BadRequest("All fields are required.");
+    }
+
+    db.Contacts.Add(contact);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/contact/{contact.Id}", contact);
+})
+.WithName("PostContact");
 
 // Endpoint contoh bawaan
 var summaries = new[]
