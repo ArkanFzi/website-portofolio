@@ -1,92 +1,88 @@
 using Microsoft.EntityFrameworkCore;
-using MyPostgreApi.Data; // Pastikan Anda membuat folder Data dan ApplicationDbContext
+using MyPostgreApi.Data;
+using MyPostgreApi.Extensions;
 using MyPostgreApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Nama policy CORS yang akan kita gunakan
-const string MyAllowSpecificOrigins = "_myAllowSpecificOrigins"; 
+// --- 1. Konfigurasi Layanan (Optimization & Security) ---
+builder.Services.ConfigureCors();
+builder.Services.ConfigureRateLimiting();
+builder.Services.ConfigureResponseCompression();
+builder.Services.ConfigureOutputCaching();
 
-// --- 1. Konfigurasi Layanan ---
-
-// Konfigurasi Database PostgreSQL menggunakan EF Core
+// Konfigurasi Database PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (connectionString != null)
 {
-    // Daftarkan DbContext Anda untuk PostgreSQL
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(connectionString));
 }
 else
 {
-    // Opsional: Penanganan jika connection string tidak ditemukan
-    Console.WriteLine("Connection string 'DefaultConnection' tidak ditemukan. Database tidak akan terkonfigurasi.");
+    Console.WriteLine("Connection string 'DefaultConnection' tidak ditemukan.");
 }
 
-// Tambahkan layanan CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          // Izinkan Next.js (Frontend) untuk mengakses API
-                          policy.WithOrigins("http://localhost:3000") 
-                                .AllowAnyHeader()
-                                .AllowAnyMethod(); // GET, POST, PUT, DELETE
-                      });
-});
-
-// Layanan standar lainnya
-builder.Services.AddOpenApi(); // Untuk Swagger/OpenAPI
+// Swagger/OpenAPI for .NET 8 (Swashbuckle)
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 // --- 2. Konfigurasi Pipeline HTTP ---
 
-// Hanya tampilkan Swagger/OpenAPI di lingkungan Development
-if (app.Environment.IsDevelopment())
+// Seed Database
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred creating the DB.");
+    }
 }
 
-// Terapkan CORS (Wajib agar Next.js bisa berkomunikasi)
-app.UseCors(MyAllowSpecificOrigins);
+app.ConfigureSecurityHeaders(); // Custom Security Headers
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseCors("CorsPolicy");
+app.UseRateLimiter(); // Apply global rate limiting
+app.UseResponseCompression();
+app.UseOutputCache();
 
 app.UseHttpsRedirection();
 
-// --- 3. Endpoint API Contoh (Produk dari Postgre) ---
+// --- 3. Endpoints ---
 
-// Definisikan Endpoint API GET Sederhana
-// Endpoint ini mengambil data dari PostgreSQL melalui ApplicationDbContext
-app.MapGet("/api/products", async (ApplicationDbContext db) =>
-{
-    // Pastikan model Product dan DbSet Products ada di ApplicationDbContext
-    // Jika belum ada data di database, ini akan mengembalikan array kosong []
-    return await db.Products.ToListAsync(); 
-})
-.WithName("GetProducts")
-.WithTags("Products");
+// Portfolio API Endpoints - Cached for 60s
+var portfolioGroup = app.MapGroup("/api").CacheOutput(); // Apply default cache policy
 
-// Portfolio API Endpoints
+portfolioGroup.MapGet("/projects", async (ApplicationDbContext db) =>
+    await db.Projects.OrderByDescending(p => p.CreatedDate).AsNoTracking().ToListAsync())
+.WithName("GetProjects")
+;
 
-// Get all projects
-app.MapGet("/api/projects", async (ApplicationDbContext db) =>
-    await db.Projects.OrderByDescending(p => p.CreatedDate).ToListAsync())
-.WithName("GetProjects");
+portfolioGroup.MapGet("/skills", async (ApplicationDbContext db) =>
+    await db.Skills.OrderBy(s => s.Category).ThenBy(s => s.Name).AsNoTracking().ToListAsync())
+.WithName("GetSkills")
+;
 
-// Get all skills
-app.MapGet("/api/skills", async (ApplicationDbContext db) =>
-    await db.Skills.OrderBy(s => s.Category).ThenBy(s => s.Name).ToListAsync())
-.WithName("GetSkills");
+portfolioGroup.MapGet("/about", async (ApplicationDbContext db) =>
+    await db.Abouts.AsNoTracking().FirstOrDefaultAsync())
+.WithName("GetAbout")
+;
 
-// Get about information
-app.MapGet("/api/about", async (ApplicationDbContext db) =>
-    await db.Abouts.FirstOrDefaultAsync())
-.WithName("GetAbout");
-
-// Post contact message
+// Contact - No Cache
 app.MapPost("/api/contact", async (Contact contact, ApplicationDbContext db) =>
 {
     if (string.IsNullOrWhiteSpace(contact.Name) || string.IsNullOrWhiteSpace(contact.Email) || string.IsNullOrWhiteSpace(contact.Message))
@@ -98,33 +94,7 @@ app.MapPost("/api/contact", async (Contact contact, ApplicationDbContext db) =>
     await db.SaveChangesAsync();
     return Results.Created($"/api/contact/{contact.Id}", contact);
 })
-.WithName("PostContact");
-
-// Endpoint contoh bawaan
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
+.WithName("PostContact")
+;
 
 app.Run();
-
-// Record untuk model data cuaca bawaan
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

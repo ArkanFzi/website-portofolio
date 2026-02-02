@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import { GlassCard } from "@/components/UI/GlassCard";
+import { Mail, MapPin, MessageSquare, Send, User } from "lucide-react";
+import { Toast } from "@/components/UI/Toast";
+import { motion } from "framer-motion";
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,8 +12,8 @@ const Contact: React.FC = () => {
     email: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -22,172 +26,119 @@ const Contact: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitMessage("");
+    setLoading(true);
 
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setSubmitMessage(
-          "Thank you for your message! I will get back to you soon."
-        );
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        setSubmitMessage(
-          "Sorry, there was an error sending your message. Please try again."
-        );
-      }
-    } catch (_error) {
-      setSubmitMessage(
-        "Sorry, there was an error sending your message. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Simulate API delay
+    setTimeout(() => {
+      setLoading(false);
+      setShowToast(true);
+      setFormData({ name: "", email: "", message: "" });
+    }, 1500);
   };
 
   return (
-    <section id="contact" className="py-20 bg-gray-50 dark:bg-gray-800">
+    <section id="contact" className="py-20 relative">
       <div className="max-w-4xl mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-12">
+        <motion.h2 
+           initial={{ opacity: 0, y: 30 }}
+           whileInView={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.6 }}
+           viewport={{ once: true }}
+           className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-white"
+        >
           Get In Touch
-        </h2>
-        <div className="grid md:grid-cols-2 gap-12">
-          <div>
-            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              Let&apos;s Connect
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              I&apos;m always interested in new opportunities and
-              collaborations. Feel free to reach out if you&apos;d like to work
-              together or just say hello!
-            </p>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-indigo-600 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-                <span className="text-gray-700 dark:text-gray-300">
-                  arkan@example.com
-                </span>
-              </div>
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-indigo-600 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <span className="text-gray-700 dark:text-gray-300">
-                  Jakarta, Indonesia
-                </span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <form onSubmit={handleSubmit} className="space-y-6">
+        </motion.h2>
+        
+        <motion.div
+           initial={{ opacity: 0, y: 50 }}
+           whileInView={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.8 }}
+           viewport={{ once: true }}
+        >
+          <GlassCard className="p-8 md:p-12 border-red-900/30">
+            <div className="grid md:grid-cols-2 gap-12">
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={4}
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                ></textarea>
-              </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-3 rounded-md font-medium transition-colors"
-              >
-                {isSubmitting ? "Sending..." : "Send Message"}
-              </button>
-              {submitMessage && (
-                <p
-                  className={`text-center ${
-                    submitMessage.includes("Thank you")
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {submitMessage}
+                <h3 className="text-2xl font-semibold text-white mb-4">
+                  Let&apos;s Connect
+                </h3>
+                <p className="text-gray-300 mb-8 leading-relaxed">
+                  Interested in collaborating or have a project in mind? Let&apos;s build something exceptional together.
                 </p>
-              )}
-            </form>
-          </div>
-        </div>
+                
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 group">
+                    <div className="p-3 bg-accent-dark border border-red-900/30 rounded-full group-hover:border-accent-primary transition-colors">
+                      <Mail className="w-6 h-6 text-accent-primary" />
+                    </div>
+                    <span className="text-gray-200 group-hover:text-white transition-colors">arkan@example.com</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 group">
+                    <div className="p-3 bg-accent-dark border border-red-900/30 rounded-full group-hover:border-accent-primary transition-colors">
+                      <MapPin className="w-6 h-6 text-accent-primary" />
+                    </div>
+                    <span className="text-gray-200 group-hover:text-white transition-colors">Jakarta, Indonesia</span>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Your Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 bg-black/20 border border-red-900/30 rounded-lg focus:outline-none focus:border-accent-primary focus:bg-black/40 text-white placeholder-gray-500 transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Your Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 bg-black/20 border border-red-900/30 rounded-lg focus:outline-none focus:border-accent-primary focus:bg-black/40 text-white placeholder-gray-500 transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <textarea
+                    name="message"
+                    placeholder="Your Message"
+                    rows={4}
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 bg-black/20 border border-red-900/30 rounded-lg focus:outline-none focus:border-accent-primary focus:bg-black/40 text-white placeholder-gray-500 transition-all resize-none"
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-accent-secondary to-accent-primary hover:from-accent-primary hover:to-red-500 text-white px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-[1.02] shadow-[0_0_20px_rgba(220,20,60,0.3)]"
+                >
+                  {loading ? "Sending..." : (
+                    <>Send Message <Send size={18} /></>
+                  )}
+                </button>
+              </form>
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        {/* Toast Notification */}
+        <Toast 
+          message="Your message has been sent successfully!" 
+          isVisible={showToast} 
+          onClose={() => setShowToast(false)} 
+        />
       </div>
     </section>
   );

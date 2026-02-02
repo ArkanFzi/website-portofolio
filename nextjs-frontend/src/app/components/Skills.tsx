@@ -1,6 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { GlassCard } from "@/components/UI/GlassCard";
+import { TiltCard } from "@/components/UI/TiltCard";
+import { motion } from "framer-motion";
+import { TechCloud } from "@/components/Three/TechCloud";
+import { Canvas } from "@react-three/fiber";
 
 interface Skill {
   id: number;
@@ -28,39 +33,57 @@ const Skills: React.FC = () => {
   }, {} as Record<string, Skill[]>);
 
   return (
-    <section id="skills" className="py-20 bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center text-dark-red mb-12">
-          Skills
+    <section id="skills" className="py-20 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-gray-400">
+          Technical Expertise
         </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Object.entries(groupedSkills).map(([category, categorySkills]) => (
-            <div key={category} className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-semibold text-dark-red mb-4">
-                {category}
-              </h3>
-              <div className="space-y-4">
-                {categorySkills.map((skill) => (
-                  <div key={skill.id}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-700">
+        
+        <div className="flex flex-col lg:flex-row gap-12 items-center">
+          {/* Left: Skills List */}
+          <div className="w-full lg:w-1/2 grid gap-6">
+            {Object.entries(groupedSkills).map(([category, categorySkills], idx) => (
+              <motion.div
+                key={category}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <GlassCard className="p-6 border-red-900/40 hover:border-accent-primary/50">
+                  <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <span className="w-2 h-8 bg-accent-primary rounded-full" />
+                    {category}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {categorySkills.map((skill) => (
+                      <span 
+                        key={skill.id}
+                        className="px-3 py-1 bg-black/40 border border-white/10 rounded-md text-sm text-gray-300 flex items-center gap-2"
+                      >
                         {skill.name}
+                        <span className="text-xs text-accent-primary font-bold">{skill.proficiency}%</span>
                       </span>
-                      <span className="text-sm text-gray-500">
-                        {skill.proficiency}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-dark-red h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${skill.proficiency}%` }}
-                      ></div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                </GlassCard>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Right: 3D Cloud with Tilt */}
+          <TiltCard className="w-full lg:w-1/2 h-[500px]">
+             <div className="relative w-full h-full">
+              <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/20 to-transparent blur-3xl rounded-full opacity-20" />
+              <GlassCard className="h-full w-full border-red-900/20 bg-black/20" hoverEffect={false}>
+                <Canvas camera={{ position: [0, 0, 6] }} gl={{ alpha: true, antialias: true }}>
+                  <ambientLight intensity={0.8} />
+                  <pointLight position={[10, 10, 10]} intensity={1.5} color="#DC143C" />
+                  <TechCloud />
+                </Canvas>
+              </GlassCard>
+             </div>
+          </TiltCard>
         </div>
       </div>
     </section>
