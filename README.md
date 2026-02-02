@@ -107,4 +107,4 @@ npm run dev
 
 ---
 
-*Built with ❤️ and ☕ by Arkan.*
+*Built with ☕ by Arkan.*
