@@ -102,8 +102,8 @@ npm run dev
 
 **M. Arkan Fauzi** - Software Engineer
 *   [GitHub](https://github.com/ArkanFzi)
-*   [LinkedIn](https://linkedin.com/in/arkanfzi)
-*   Email: arkan@example.com
+*   [LinkedIn](https://www.linkedin.com/in/muhamad-arkan-fauzi-5a6799380/)
+*   Email: muhammadarkanfauzi0@gmail.com
 
 ---
 
